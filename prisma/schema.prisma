@@ -1,0 +1,94 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// Define your models and relationships in schema.prisma
+
+model User {
+  UserID    Int      @id @default(autoincrement())
+  Name      String
+  Email     String
+  Password  String
+  projects  Int @map("projects_id")
+}
+
+model Project {
+  ProjectID    Int            @id @default(autoincrement())
+  Name         String
+  Description  String
+  StartDate    DateTime
+  EndDate      DateTime
+  tasks        Task[]
+  teams        TeamProject[]
+  documents    ProjectDocument[]
+  issues       IssueAndQuestion[]
+  UserProjects UserProject[]
+}
+
+model Task {
+  TaskID      Int      @id @default(autoincrement())
+  Name        String
+  Description String
+  Status      String
+  ProjectID   Int
+  project     Project  @relation(fields: [ProjectID], references: [ProjectID])
+}
+
+model Team {
+  TeamID    Int      @id @default(autoincrement())
+  TeamName  String
+  projects  TeamProject[]
+}
+
+model CalendarEvent {
+  EventID   Int      @id @default(autoincrement())
+  Activity  String
+  Date      DateTime
+  Time      DateTime
+}
+
+model ProjectDocument {
+  DocumentID Int      @id @default(autoincrement())
+  Name       String
+  Description String
+  Version    String
+  ProjectID  Int
+  project    Project  @relation(fields: [ProjectID], references: [ProjectID])
+}
+
+model IssueAndQuestion {
+  IssueID    Int      @id @default(autoincrement())
+  Title      String
+  Description String
+  Status     String
+  ProjectID  Int
+  project    Project  @relation(fields: [ProjectID], references: [ProjectID])
+}
+
+// Many-to-Many Relationship between User and Project
+model UserProject {
+  UserID    Int      
+  ProjectID Int      
+  user      Int  @map("user_id")
+  project   Project  @relation(fields: [ProjectID], references: [ProjectID])
+
+  @@id([UserID, ProjectID])
+}
+
+// Many-to-Many Relationship between Team and Project
+model TeamProject {
+  TeamID    Int      
+  ProjectID Int      
+  team      Team     @relation(fields: [TeamID], references: [TeamID])
+  project   Project  @relation(fields: [ProjectID], references: [ProjectID])
+
+  @@id([TeamID, ProjectID])
+}
